@@ -4,7 +4,7 @@
 
 ---
 
-## Быстрый старт (запуск одной командой)
+## Старт
 
 ```bash
 
@@ -222,7 +222,8 @@ mvn test
 # Отчёт: target/site/jacoco/index.html
 ```
 
-[Скриншот отчёта покрытия]
+<img width="1101" height="229" alt="image" src="https://github.com/user-attachments/assets/124a005c-1341-47fb-b947-11346239fa57" />
+
 
 ---
 
