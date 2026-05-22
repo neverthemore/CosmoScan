@@ -1,0 +1,6 @@
+com\kosmoskan\storing\model\Work.class
+com\kosmoskan\storing\repository\WorkRepository.class
+com\kosmoskan\storing\dto\WorkDto.class
+com\kosmoskan\storing\StoringApplication.class
+com\kosmoskan\storing\controller\WorkController.class
+com\kosmoskan\storing\service\WorkService.class

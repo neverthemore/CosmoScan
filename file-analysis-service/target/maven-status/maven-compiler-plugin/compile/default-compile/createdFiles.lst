@@ -1,0 +1,10 @@
+com\kosmoskan\analysis\service\AnalysisService.class
+com\kosmoskan\analysis\dto\ReportDto.class
+com\kosmoskan\analysis\model\StringListConverter$1.class
+com\kosmoskan\analysis\controller\ReportController.class
+com\kosmoskan\analysis\repository\ReportRepository.class
+com\kosmoskan\analysis\service\WordCloudService.class
+com\kosmoskan\analysis\model\Report.class
+com\kosmoskan\analysis\AnalysisApplication.class
+com\kosmoskan\analysis\model\StringListConverter.class
+com\kosmoskan\analysis\service\TextExtractorService.class

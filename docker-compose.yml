@@ -1,0 +1,82 @@
+services:
+
+  db_storing:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: storing_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - storing_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d storing_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  db_analysis:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: analysis_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - analysis_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d analysis_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  file-storing-service:
+    build: ./file-storing-service
+    ports:
+      - "8001:8001"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db_storing:5432/storing_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      UPLOAD_DIR: /app/uploads
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      db_storing:
+        condition: service_healthy
+    restart: unless-stopped
+
+  file-analysis-service:
+    build: ./file-analysis-service
+    ports:
+      - "8002:8002"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db_analysis:5432/analysis_db
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      FILE_STORING_URL: http://file-storing-service:8001
+      REPORTS_DIR: /app/reports
+    volumes:
+      - reports_data:/app/reports
+    depends_on:
+      db_analysis:
+        condition: service_healthy
+      file-storing-service:
+        condition: service_started
+    restart: unless-stopped
+
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "8000:8000"
+    environment:
+      FILE_STORING_URL: http://file-storing-service:8001
+      FILE_ANALYSIS_URL: http://file-analysis-service:8002
+    depends_on:
+      - file-storing-service
+      - file-analysis-service
+    restart: unless-stopped
+
+volumes:
+  storing_data:
+  analysis_data:
+  uploads_data:
+  reports_data:

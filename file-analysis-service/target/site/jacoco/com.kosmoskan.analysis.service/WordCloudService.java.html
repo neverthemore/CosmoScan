@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>WordCloudService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">file-analysis-service</a> &gt; <a href="index.source.html" class="el_package">com.kosmoskan.analysis.service</a> &gt; <span class="el_source">WordCloudService.java</span></div><h1>WordCloudService.java</h1><pre class="source lang-java linenums">package com.kosmoskan.analysis.service;
+
+import com.kennycason.kumo.CollisionMode;
+import com.kennycason.kumo.WordCloud;
+import com.kennycason.kumo.WordFrequency;
+import com.kennycason.kumo.bg.RectangleBackground;
+import com.kennycason.kumo.font.scale.SqrtFontScalar;
+import com.kennycason.kumo.palette.ColorPalette;
+import org.springframework.stereotype.Service;
+
+import java.awt.*;
+import java.util.*;
+import java.util.List;
+import java.util.stream.Collectors;
+
+
+@Service
+<span class="fc" id="L18">public class WordCloudService {</span>
+
+      private static final int MIN_TEXT_LENGTH = 20;
+
+<span class="fc" id="L22">    private static final Set&lt;String&gt; STOP_WORDS = Set.of(</span>
+        &quot;и&quot;, &quot;в&quot;, &quot;не&quot;, &quot;на&quot;, &quot;с&quot;, &quot;по&quot;, &quot;за&quot;, &quot;к&quot;, &quot;из&quot;, &quot;от&quot;, &quot;у&quot;, &quot;до&quot;,
+        &quot;как&quot;, &quot;а&quot;, &quot;но&quot;, &quot;то&quot;, &quot;же&quot;, &quot;бы&quot;, &quot;или&quot;, &quot;что&quot;, &quot;это&quot;, &quot;для&quot;,
+        &quot;при&quot;, &quot;без&quot;, &quot;под&quot;, &quot;над&quot;, &quot;через&quot;, &quot;между&quot;, &quot;об&quot;, &quot;о&quot;,
+        &quot;the&quot;, &quot;a&quot;, &quot;an&quot;, &quot;is&quot;, &quot;in&quot;, &quot;of&quot;, &quot;to&quot;, &quot;and&quot;, &quot;for&quot;, &quot;on&quot;,
+        &quot;at&quot;, &quot;by&quot;, &quot;with&quot;, &quot;was&quot;, &quot;are&quot;, &quot;has&quot;, &quot;had&quot;, &quot;be&quot;, &quot;it&quot;, &quot;as&quot;
+    );
+
+
+    public boolean generate(String text, String outputPath) {
+<span class="fc bfc" id="L32" title="All 4 branches covered.">        if (text == null || text.trim().length() &lt; MIN_TEXT_LENGTH) {</span>
+<span class="fc" id="L33">            return false;</span>
+        }
+        try {
+<span class="fc" id="L36">            List&lt;WordFrequency&gt; frequencies = buildWordFrequencies(text);</span>
+<span class="fc bfc" id="L37" title="All 2 branches covered.">            if (frequencies.isEmpty()) return false;</span>
+
+<span class="fc" id="L39">            Dimension dimension = new Dimension(800, 400);</span>
+<span class="fc" id="L40">            WordCloud wordCloud = new WordCloud(dimension, CollisionMode.PIXEL_PERFECT);</span>
+
+<span class="fc" id="L42">            wordCloud.setPadding(2);</span>
+<span class="fc" id="L43">            wordCloud.setBackground(new RectangleBackground(dimension));</span>
+<span class="fc" id="L44">            wordCloud.setColorPalette(new ColorPalette(</span>
+                new Color(0x0D47A1),
+                new Color(0x1565C0),
+                new Color(0x1976D2),
+                new Color(0x42A5F5),
+                new Color(0x64B5F6)
+            ));
+<span class="fc" id="L51">            wordCloud.setFontScalar(new SqrtFontScalar(12, 45));</span>
+
+<span class="fc" id="L53">            wordCloud.build(frequencies);</span>
+<span class="fc" id="L54">            wordCloud.writeToFile(outputPath);</span>
+<span class="fc" id="L55">            return true;</span>
+
+<span class="nc" id="L57">        } catch (Exception e) {</span>
+<span class="nc" id="L58">            return false;</span>
+        }
+    }
+
+
+    private List&lt;WordFrequency&gt; buildWordFrequencies(String text) {
+<span class="fc" id="L64">        Map&lt;String, Integer&gt; freqMap = new HashMap&lt;&gt;();</span>
+
+<span class="fc" id="L66">               String[] words = text.toLowerCase()</span>
+<span class="fc" id="L67">                .replaceAll(&quot;[^а-яёa-z0-9\\s]&quot;, &quot; &quot;)</span>
+<span class="fc" id="L68">                .split(&quot;\\s+&quot;);</span>
+
+<span class="fc bfc" id="L70" title="All 2 branches covered.">        for (String word : words) {</span>
+<span class="fc bfc" id="L71" title="All 4 branches covered.">            if (word.length() &gt; 2 &amp;&amp; !STOP_WORDS.contains(word)) {</span>
+<span class="fc" id="L72">                freqMap.merge(word, 1, Integer::sum);</span>
+            }
+        }
+
+
+<span class="fc" id="L77">        return freqMap.entrySet().stream()</span>
+<span class="fc" id="L78">                .sorted(Map.Entry.&lt;String, Integer&gt;comparingByValue().reversed())</span>
+<span class="fc" id="L79">                .limit(100)</span>
+<span class="fc" id="L80">                .map(e -&gt; new WordFrequency(e.getKey(), e.getValue()))</span>
+<span class="fc" id="L81">                .collect(Collectors.toList());</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

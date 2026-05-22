@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.kosmoskan.storing.WorkControllerTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 4.390 s -- in com.kosmoskan.storing.WorkControllerTest

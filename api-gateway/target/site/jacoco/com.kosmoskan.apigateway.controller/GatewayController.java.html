@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GatewayController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">api-gateway</a> &gt; <a href="index.source.html" class="el_package">com.kosmoskan.apigateway.controller</a> &gt; <span class="el_source">GatewayController.java</span></div><h1>GatewayController.java</h1><pre class="source lang-java linenums">package com.kosmoskan.apigateway.controller;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.*;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.util.*;
+
+@RestController
+@Tag(name = &quot;КосмоСкан API Gateway&quot;, description = &quot;Единая точка входа в систему&quot;)
+public class GatewayController {
+
+    private final RestClient storingClient;
+    private final RestClient analysisClient;
+
+    public GatewayController(
+            @Value(&quot;${app.file-storing-url}&quot;) String storingUrl,
+<span class="fc" id="L29">            @Value(&quot;${app.file-analysis-url}&quot;) String analysisUrl) {</span>
+<span class="fc" id="L30">        this.storingClient  = RestClient.builder().baseUrl(storingUrl).build();</span>
+<span class="fc" id="L31">        this.analysisClient = RestClient.builder().baseUrl(analysisUrl).build();</span>
+<span class="fc" id="L32">    }</span>
+
+    @GetMapping(&quot;/health&quot;)
+    @Operation(summary = &quot;Состояние всех сервисов системы&quot;)
+    public Map&lt;String, Object&gt; health() {
+<span class="fc" id="L37">        Map&lt;String, Object&gt; response = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L38">        response.put(&quot;gateway&quot;, &quot;ok&quot;);</span>
+<span class="fc" id="L39">        response.put(&quot;services&quot;, Map.of(</span>
+<span class="fc" id="L40">            &quot;file_storing&quot;,  pingService(storingClient),</span>
+<span class="fc" id="L41">            &quot;file_analysis&quot;, pingService(analysisClient)</span>
+        ));
+<span class="fc" id="L43">        return response;</span>
+    }
+
+
+    @PostMapping(value = &quot;/works&quot;, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = &quot;Принять работу студента (сохранить + проанализировать)&quot;)
+    public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; submitWork(
+            @RequestParam(&quot;student_name&quot;) String studentName,
+            @RequestParam(&quot;file&quot;) MultipartFile file) throws IOException {
+
+<span class="nc" id="L53">        Map&lt;?, ?&gt; workData = saveFile(studentName, file);</span>
+<span class="nc" id="L54">        Long workId = ((Number) workData.get(&quot;id&quot;)).longValue();</span>
+
+<span class="nc" id="L56">        Map&lt;String, Object&gt; response = new LinkedHashMap&lt;&gt;();</span>
+<span class="nc" id="L57">        response.put(&quot;work&quot;, workData);</span>
+
+        try {
+<span class="nc" id="L60">            Map&lt;?, ?&gt; reportData = analysisClient.post()</span>
+<span class="nc" id="L61">                    .uri(&quot;/analyze/{id}&quot;, workId)</span>
+<span class="nc" id="L62">                    .retrieve()</span>
+<span class="nc" id="L63">                    .body(Map.class);</span>
+<span class="nc" id="L64">            response.put(&quot;report&quot;, reportData);</span>
+<span class="nc" id="L65">            response.put(&quot;message&quot;,</span>
+<span class="nc" id="L66">                &quot;Работа успешно принята. Статус проверки: &quot; + reportData.get(&quot;status&quot;));</span>
+<span class="nc" id="L67">        } catch (Exception e) {</span>
+
+<span class="nc" id="L69">            response.put(&quot;report&quot;, null);</span>
+<span class="nc" id="L70">            response.put(&quot;warning&quot;,</span>
+                &quot;Файл сохранён, но сервис анализа временно недоступен. &quot; +
+                &quot;Отчёт можно получить позже: GET /works/&quot; + workId + &quot;/reports&quot;);
+<span class="nc" id="L73">        }</span>
+
+<span class="nc" id="L75">        return ResponseEntity.ok(response);</span>
+    }
+
+    @GetMapping(&quot;/works&quot;)
+    @Operation(summary = &quot;Список всех сданных работ&quot;)
+    public List&lt;?&gt; listWorks() {
+        try {
+<span class="nc" id="L82">            return storingClient.get().uri(&quot;/files&quot;).retrieve().body(List.class);</span>
+<span class="fc" id="L83">        } catch (ResourceAccessException e) {</span>
+<span class="fc" id="L84">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE,
+                &quot;File Storing Service недоступен. Попробуйте позже.&quot;
+            );
+        }
+    }
+
+
+    @GetMapping(&quot;/works/{id}&quot;)
+    @Operation(summary = &quot;Информация о работе по ID&quot;)
+    public Map&lt;?, ?&gt; getWork(@PathVariable Long id) {
+        try {
+<span class="nc" id="L96">            return storingClient.get().uri(&quot;/files/{id}&quot;, id).retrieve().body(Map.class);</span>
+<span class="nc" id="L97">        } catch (HttpClientErrorException.NotFound e) {</span>
+<span class="nc" id="L98">            throw new ResponseStatusException(HttpStatus.NOT_FOUND, &quot;Работа не найдена&quot;);</span>
+<span class="fc" id="L99">        } catch (ResourceAccessException e) {</span>
+<span class="fc" id="L100">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE, &quot;File Storing Service недоступен&quot;
+            );
+        }
+    }
+
+
+    @GetMapping(&quot;/works/{id}/reports&quot;)
+    @Operation(summary = &quot;Отчёт о технической проверке работы (для преподавателя)&quot;)
+    public Map&lt;?, ?&gt; getWorkReport(@PathVariable Long id) {
+        try {
+<span class="nc" id="L111">            return analysisClient.get().uri(&quot;/reports/{id}&quot;, id).retrieve().body(Map.class);</span>
+<span class="nc" id="L112">        } catch (HttpClientErrorException.NotFound e) {</span>
+<span class="nc" id="L113">            throw new ResponseStatusException(</span>
+                HttpStatus.NOT_FOUND,
+                &quot;Отчёт не найден. Возможно анализ ещё не выполнен.&quot;
+            );
+<span class="fc" id="L117">        } catch (ResourceAccessException e) {</span>
+<span class="fc" id="L118">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE, &quot;File Analysis Service недоступен&quot;
+            );
+        }
+    }
+
+
+    @GetMapping(&quot;/works/{id}/wordcloud&quot;)
+    @Operation(summary = &quot;Облако слов для работы (PNG изображение)&quot;)
+    public ResponseEntity&lt;byte[]&gt; getWordcloud(@PathVariable Long id) {
+        try {
+<span class="fc" id="L129">            byte[] image = analysisClient.get()</span>
+<span class="fc" id="L130">                    .uri(&quot;/reports/{id}/wordcloud&quot;, id)</span>
+<span class="nc" id="L131">                    .retrieve()</span>
+<span class="nc" id="L132">                    .body(byte[].class);</span>
+<span class="nc" id="L133">            return ResponseEntity.ok()</span>
+<span class="nc" id="L134">                    .contentType(MediaType.IMAGE_PNG)</span>
+<span class="nc" id="L135">                    .header(HttpHeaders.CONTENT_DISPOSITION,</span>
+                            &quot;inline; filename=\&quot;wordcloud_&quot; + id + &quot;.png\&quot;&quot;)
+<span class="nc" id="L137">                    .body(image);</span>
+<span class="nc" id="L138">        } catch (HttpClientErrorException.NotFound e) {</span>
+<span class="nc" id="L139">            throw new ResponseStatusException(</span>
+                HttpStatus.NOT_FOUND, &quot;Облако слов не найдено&quot;
+            );
+<span class="fc" id="L142">        } catch (ResourceAccessException e) {</span>
+<span class="fc" id="L143">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE, &quot;File Analysis Service недоступен&quot;
+            );
+        }
+    }
+
+
+    @GetMapping(&quot;/reports&quot;)
+    @Operation(summary = &quot;Все отчёты о проверке работ&quot;)
+    public List&lt;?&gt; getAllReports() {
+        try {
+<span class="nc" id="L154">            return analysisClient.get().uri(&quot;/reports&quot;).retrieve().body(List.class);</span>
+<span class="fc" id="L155">        } catch (ResourceAccessException e) {</span>
+<span class="fc" id="L156">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE, &quot;File Analysis Service недоступен&quot;
+            );
+        }
+    }
+
+    private Map&lt;?, ?&gt; saveFile(String studentName, MultipartFile file) throws IOException {
+        try {
+<span class="nc" id="L164">            byte[] bytes = file.getBytes();</span>
+<span class="nc" id="L165">            ByteArrayResource fileResource = new ByteArrayResource(bytes) {</span>
+                @Override
+<span class="nc" id="L167">                public String getFilename() { return file.getOriginalFilename(); }</span>
+            };
+
+<span class="nc" id="L170">            MultiValueMap&lt;String, Object&gt; body = new LinkedMultiValueMap&lt;&gt;();</span>
+<span class="nc" id="L171">            body.add(&quot;student_name&quot;, studentName);</span>
+<span class="nc" id="L172">            body.add(&quot;file&quot;, fileResource);</span>
+
+<span class="nc" id="L174">            return storingClient.post()</span>
+<span class="nc" id="L175">                    .uri(&quot;/files&quot;)</span>
+<span class="nc" id="L176">                    .contentType(MediaType.MULTIPART_FORM_DATA)</span>
+<span class="nc" id="L177">                    .body(body)</span>
+<span class="nc" id="L178">                    .retrieve()</span>
+<span class="nc" id="L179">                    .body(Map.class);</span>
+
+<span class="nc" id="L181">        } catch (HttpClientErrorException e) {</span>
+<span class="nc" id="L182">            throw new ResponseStatusException(</span>
+<span class="nc" id="L183">                e.getStatusCode(),</span>
+<span class="nc" id="L184">                e.getResponseBodyAsString()</span>
+            );
+<span class="nc" id="L186">        } catch (ResourceAccessException e) {</span>
+<span class="nc" id="L187">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE,
+                &quot;File Storing Service недоступен. Попробуйте позже.&quot;
+            );
+        }
+    }
+
+    private String pingService(RestClient client) {
+        try {
+<span class="nc" id="L196">            client.get().uri(&quot;/health&quot;).retrieve().body(Map.class);</span>
+<span class="nc" id="L197">            return &quot;ok&quot;;</span>
+<span class="fc" id="L198">        } catch (Exception e) {</span>
+<span class="fc" id="L199">            return &quot;unavailable&quot;;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

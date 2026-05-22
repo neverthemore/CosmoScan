@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ReportDto.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">file-analysis-service</a> &gt; <a href="index.source.html" class="el_package">com.kosmoskan.analysis.dto</a> &gt; <span class="el_source">ReportDto.java</span></div><h1>ReportDto.java</h1><pre class="source lang-java linenums">package com.kosmoskan.analysis.dto;
+
+import lombok.Data;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+
+
+<span class="nc bnc" id="L9" title="All 98 branches missed.">@Data</span>
+public class ReportDto {
+<span class="nc" id="L11">    private Long id;</span>
+<span class="nc" id="L12">    private Long workId;</span>
+<span class="nc" id="L13">    private String studentName;</span>
+<span class="nc" id="L14">    private String filename;</span>
+<span class="nc" id="L15">    private String status;</span>
+<span class="nc" id="L16">    private String fileFormat;</span>
+<span class="nc" id="L17">    private Long fileSize;</span>
+<span class="nc" id="L18">    private String formatValid;</span>
+<span class="nc" id="L19">    private String sizeValid;</span>
+<span class="nc" id="L20">    private List&lt;String&gt; issues;</span>
+<span class="nc" id="L21">    private boolean hasWordcloud;</span>
+<span class="nc" id="L22">    private OffsetDateTime createdAt;</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,18 @@
+server:
+  port: 8000
+
+spring:
+  application:
+    name: api-gateway
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+app:
+  file-storing-url: ${FILE_STORING_URL:http://localhost:8001}
+  file-analysis-url: ${FILE_ANALYSIS_URL:http://localhost:8002}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html

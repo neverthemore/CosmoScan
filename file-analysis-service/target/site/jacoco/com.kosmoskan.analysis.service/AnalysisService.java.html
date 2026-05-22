@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AnalysisService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">file-analysis-service</a> &gt; <a href="index.source.html" class="el_package">com.kosmoskan.analysis.service</a> &gt; <span class="el_source">AnalysisService.java</span></div><h1>AnalysisService.java</h1><pre class="source lang-java linenums">package com.kosmoskan.analysis.service;
+
+import com.kosmoskan.analysis.dto.ReportDto;
+import com.kosmoskan.analysis.model.Report;
+import com.kosmoskan.analysis.repository.ReportRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+@Service
+public class AnalysisService {
+
+<span class="nc" id="L24">    private static final Set&lt;String&gt; ALLOWED_FORMATS = Set.of(&quot;pdf&quot;, &quot;docx&quot;, &quot;txt&quot;);</span>
+    private static final long MAX_FILE_SIZE = 1024 * 1024L;
+
+    private final ReportRepository repository;
+    private final TextExtractorService extractor;
+    private final WordCloudService wordCloudService;
+    private final RestClient restClient;
+    private final String reportsDir;
+
+    public AnalysisService(
+            ReportRepository repository,
+            TextExtractorService extractor,
+            WordCloudService wordCloudService,
+            @Value(&quot;${app.file-storing-url}&quot;) String storingUrl,
+<span class="nc" id="L38">            @Value(&quot;${app.reports-dir}&quot;) String reportsDir) throws IOException {</span>
+<span class="nc" id="L39">        this.repository = repository;</span>
+<span class="nc" id="L40">        this.extractor = extractor;</span>
+<span class="nc" id="L41">        this.wordCloudService = wordCloudService;</span>
+<span class="nc" id="L42">        this.restClient = RestClient.builder().baseUrl(storingUrl).build();</span>
+<span class="nc" id="L43">        this.reportsDir = reportsDir;</span>
+<span class="nc" id="L44">        Files.createDirectories(Paths.get(reportsDir));</span>
+<span class="nc" id="L45">    }</span>
+
+    public ReportDto analyze(Long workId) {
+<span class="nc bnc" id="L48" title="All 2 branches missed.">        if (repository.existsByWorkId(workId)) {</span>
+<span class="nc" id="L49">            throw new ResponseStatusException(</span>
+                HttpStatus.CONFLICT,
+                &quot;Отчёт для работы ID=&quot; + workId + &quot; уже существует. &quot; +
+                &quot;Для просмотра используйте GET /reports/&quot; + workId
+            );
+        }
+
+<span class="nc" id="L56">        Map&lt;?, ?&gt; meta = fetchMetadata(workId);</span>
+<span class="nc" id="L57">        byte[] fileContent = fetchContent(workId);</span>
+<span class="nc" id="L58">        String format = (String) meta.get(&quot;fileFormat&quot;);</span>
+<span class="nc" id="L59">        long size = ((Number) meta.get(&quot;fileSize&quot;)).longValue();</span>
+<span class="nc" id="L60">        List&lt;String&gt; issues = new ArrayList&lt;&gt;();</span>
+<span class="nc" id="L61">        boolean formatOk = ALLOWED_FORMATS.contains(format);</span>
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        boolean sizeOk = size &lt;= MAX_FILE_SIZE;</span>
+
+<span class="nc bnc" id="L64" title="All 2 branches missed.">        if (!formatOk) {</span>
+<span class="nc" id="L65">            issues.add(&quot;Недопустимый формат: &quot; + format + &quot;. Разрешены: &quot; + ALLOWED_FORMATS);</span>
+        }
+<span class="nc bnc" id="L67" title="All 2 branches missed.">        if (!sizeOk) {</span>
+<span class="nc" id="L68">            issues.add(&quot;Размер &quot; + size + &quot; байт превышает допустимый (&quot; + MAX_FILE_SIZE + &quot; байт)&quot;);</span>
+        }
+
+<span class="nc" id="L71">        String wordcloudPath = null;</span>
+<span class="nc bnc" id="L72" title="All 4 branches missed.">        if (formatOk &amp;&amp; fileContent != null) {</span>
+<span class="nc" id="L73">            String text = extractor.extractText(fileContent, format);</span>
+<span class="nc" id="L74">            String wcPath = reportsDir + &quot;/wordcloud_&quot; + workId + &quot;.png&quot;;</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (wordCloudService.generate(text, wcPath)) {</span>
+<span class="nc" id="L76">                wordcloudPath = wcPath;</span>
+            }
+        }
+
+<span class="nc" id="L80">        Report report = new Report();</span>
+<span class="nc" id="L81">        report.setWorkId(workId);</span>
+<span class="nc" id="L82">        report.setStudentName((String) meta.get(&quot;studentName&quot;));</span>
+<span class="nc" id="L83">        report.setFilename((String) meta.get(&quot;originalFilename&quot;));</span>
+<span class="nc bnc" id="L84" title="All 4 branches missed.">        report.setStatus(formatOk &amp;&amp; sizeOk ? &quot;accepted&quot; : &quot;needs_revision&quot;);</span>
+<span class="nc" id="L85">        report.setFileFormat(format);</span>
+<span class="nc" id="L86">        report.setFileSize(size);</span>
+<span class="nc bnc" id="L87" title="All 2 branches missed.">        report.setFormatValid(formatOk ? &quot;ok&quot; : &quot;error&quot;);</span>
+<span class="nc bnc" id="L88" title="All 2 branches missed.">        report.setSizeValid(sizeOk ? &quot;ok&quot; : &quot;error&quot;);</span>
+<span class="nc" id="L89">        report.setIssues(issues);</span>
+<span class="nc" id="L90">        report.setWordcloudPath(wordcloudPath);</span>
+
+<span class="nc" id="L92">        return toDto(repository.save(report));</span>
+    }
+
+    public List&lt;ReportDto&gt; findAll() {
+<span class="nc" id="L96">        return repository.findAll().stream().map(this::toDto).toList();</span>
+    }
+
+    public ReportDto findByWorkId(Long workId) {
+<span class="nc" id="L100">        return repository.findByWorkId(workId)</span>
+<span class="nc" id="L101">                .map(this::toDto)</span>
+<span class="nc" id="L102">                .orElseThrow(() -&gt; new ResponseStatusException(</span>
+                    HttpStatus.NOT_FOUND,
+                    &quot;Отчёт для работы ID=&quot; + workId + &quot; не найден. &quot; +
+                    &quot;Сначала запустите анализ: POST /analyze/&quot; + workId
+                ));
+    }
+
+    public String getWordcloudPath(Long workId) {
+<span class="nc" id="L110">        Report report = repository.findByWorkId(workId)</span>
+<span class="nc" id="L111">                .orElseThrow(() -&gt; new ResponseStatusException(</span>
+                    HttpStatus.NOT_FOUND, &quot;Отчёт не найден&quot;
+                ));
+<span class="nc bnc" id="L114" title="All 2 branches missed.">        if (report.getWordcloudPath() == null) {</span>
+<span class="nc" id="L115">            throw new ResponseStatusException(</span>
+                HttpStatus.NOT_FOUND, &quot;Облако слов недоступно для данной работы&quot;
+            );
+        }
+<span class="nc" id="L119">        return report.getWordcloudPath();</span>
+    }
+
+    private Map&lt;?, ?&gt; fetchMetadata(Long workId) {
+        try {
+<span class="nc" id="L124">            return restClient.get()</span>
+<span class="nc" id="L125">                    .uri(&quot;/files/{id}&quot;, workId)</span>
+<span class="nc" id="L126">                    .retrieve()</span>
+<span class="nc" id="L127">                    .body(Map.class);</span>
+<span class="nc" id="L128">        } catch (HttpClientErrorException.NotFound e) {</span>
+<span class="nc" id="L129">            throw new ResponseStatusException(</span>
+                HttpStatus.NOT_FOUND, &quot;Работа ID=&quot; + workId + &quot; не найдена&quot;
+            );
+<span class="nc" id="L132">        } catch (ResourceAccessException e) {</span>
+<span class="nc" id="L133">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE,
+<span class="nc" id="L135">                &quot;File Storing Service недоступен: &quot; + e.getMessage()</span>
+            );
+        }
+    }
+
+    private byte[] fetchContent(Long workId) {
+        try {
+<span class="nc" id="L142">            return restClient.get()</span>
+<span class="nc" id="L143">                    .uri(&quot;/files/{id}/content&quot;, workId)</span>
+<span class="nc" id="L144">                    .retrieve()</span>
+<span class="nc" id="L145">                    .body(byte[].class);</span>
+<span class="nc" id="L146">        } catch (ResourceAccessException e) {</span>
+<span class="nc" id="L147">            throw new ResponseStatusException(</span>
+                HttpStatus.SERVICE_UNAVAILABLE,
+<span class="nc" id="L149">                &quot;Не удалось получить файл: &quot; + e.getMessage()</span>
+            );
+        }
+    }
+
+    private ReportDto toDto(Report r) {
+<span class="nc" id="L155">        ReportDto dto = new ReportDto();</span>
+<span class="nc" id="L156">        dto.setId(r.getId());</span>
+<span class="nc" id="L157">        dto.setWorkId(r.getWorkId());</span>
+<span class="nc" id="L158">        dto.setStudentName(r.getStudentName());</span>
+<span class="nc" id="L159">        dto.setFilename(r.getFilename());</span>
+<span class="nc" id="L160">        dto.setStatus(r.getStatus());</span>
+<span class="nc" id="L161">        dto.setFileFormat(r.getFileFormat());</span>
+<span class="nc" id="L162">        dto.setFileSize(r.getFileSize());</span>
+<span class="nc" id="L163">        dto.setFormatValid(r.getFormatValid());</span>
+<span class="nc" id="L164">        dto.setSizeValid(r.getSizeValid());</span>
+<span class="nc bnc" id="L165" title="All 2 branches missed.">        dto.setIssues(r.getIssues() != null ? r.getIssues() : List.of());</span>
+<span class="nc bnc" id="L166" title="All 2 branches missed.">        dto.setHasWordcloud(r.getWordcloudPath() != null);</span>
+<span class="nc" id="L167">        dto.setCreatedAt(r.getCreatedAt());</span>
+<span class="nc" id="L168">        return dto;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

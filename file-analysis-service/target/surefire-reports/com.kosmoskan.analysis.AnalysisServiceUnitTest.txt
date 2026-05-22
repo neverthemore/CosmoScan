@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.kosmoskan.analysis.AnalysisServiceUnitTest
+-------------------------------------------------------------------------------
+Tests run: 12, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.175 s -- in com.kosmoskan.analysis.AnalysisServiceUnitTest

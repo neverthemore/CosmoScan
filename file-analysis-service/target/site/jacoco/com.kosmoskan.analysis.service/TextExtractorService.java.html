@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="ru"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>TextExtractorService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">file-analysis-service</a> &gt; <a href="index.source.html" class="el_package">com.kosmoskan.analysis.service</a> &gt; <span class="el_source">TextExtractorService.java</span></div><h1>TextExtractorService.java</h1><pre class="source lang-java linenums">package com.kosmoskan.analysis.service;
+
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
+import org.springframework.stereotype.Service;
+
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
+
+@Service
+<span class="fc" id="L13">public class TextExtractorService {</span>
+
+    public String extractText(byte[] content, String format) {
+<span class="fc bfc" id="L16" title="All 4 branches covered.">        if (content == null || content.length == 0) return &quot;&quot;;</span>
+        try {
+<span class="pc bpc" id="L18" title="2 of 4 branches missed.">            return switch (format.toLowerCase()) {</span>
+<span class="fc" id="L19">                case &quot;txt&quot;  -&gt; extractFromTxt(content);</span>
+<span class="nc" id="L20">                case &quot;pdf&quot;  -&gt; extractFromPdf(content);</span>
+<span class="nc" id="L21">                case &quot;docx&quot; -&gt; extractFromDocx(content);</span>
+<span class="fc" id="L22">                default     -&gt; &quot;&quot;;</span>
+            };
+<span class="fc" id="L24">        } catch (Exception e) {</span>
+<span class="fc" id="L25">            return &quot;Не удалось извлечь текст: &quot; + e.getMessage();</span>
+        }
+    }
+
+    private String extractFromTxt(byte[] content) {
+<span class="fc" id="L30">        return new String(content, StandardCharsets.UTF_8);</span>
+    }
+
+    private String extractFromPdf(byte[] content) throws Exception {
+<span class="nc" id="L34">        try (PDDocument doc = Loader.loadPDF(content)) {</span>
+<span class="nc" id="L35">            return new PDFTextStripper().getText(doc);</span>
+        }
+    }
+
+    private String extractFromDocx(byte[] content) throws Exception {
+<span class="nc" id="L40">        try (XWPFDocument doc = new XWPFDocument(new ByteArrayInputStream(content))) {</span>
+<span class="nc" id="L41">            StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L42">            doc.getParagraphs().forEach(p -&gt; sb.append(p.getText()).append(&quot;\n&quot;));</span>
+<span class="nc" id="L43">            return sb.toString();</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

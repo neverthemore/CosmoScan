@@ -1,0 +1,6 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+file-storing-service,com.kosmoskan.storing.model,Work,59,0,0,0,17,0,17,0,17,0
+file-storing-service,com.kosmoskan.storing.service,WorkService,227,6,10,0,53,1,14,1,9,1
+file-storing-service,com.kosmoskan.storing.controller,WorkController,27,28,0,0,7,7,1,5,1,5
+file-storing-service,com.kosmoskan.storing,StoringApplication,5,3,0,0,2,1,1,1,1,1
+file-storing-service,com.kosmoskan.storing.dto,WorkDto,231,45,54,0,0,7,31,13,4,13

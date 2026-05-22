@@ -1,0 +1,10 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+file-analysis-service,com.kosmoskan.analysis.dto,ReportDto,504,0,98,0,13,0,78,0,29,0
+file-analysis-service,com.kosmoskan.analysis.model,StringListConverter,45,0,8,0,10,0,8,0,4,0
+file-analysis-service,com.kosmoskan.analysis.model,Report,87,0,0,0,25,0,25,0,25,0
+file-analysis-service,com.kosmoskan.analysis.model,StringListConverter.new TypeReference() {...},6,0,0,0,1,0,1,0,1,0
+file-analysis-service,com.kosmoskan.analysis.controller,ReportController,52,0,0,0,13,0,6,0,6,0
+file-analysis-service,com.kosmoskan.analysis,AnalysisApplication,12,0,0,0,4,0,2,0,2,0
+file-analysis-service,com.kosmoskan.analysis.service,AnalysisService,363,0,28,0,79,0,25,0,11,0
+file-analysis-service,com.kosmoskan.analysis.service,WordCloudService,3,372,0,12,2,27,0,11,0,5
+file-analysis-service,com.kosmoskan.analysis.service,TextExtractorService,49,36,2,6,8,8,5,6,3,3
