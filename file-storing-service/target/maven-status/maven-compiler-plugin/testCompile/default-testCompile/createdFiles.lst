@@ -1,1 +1,3 @@
+com\kosmoskan\storing\WorkIntegrationTest.class
 com\kosmoskan\storing\WorkControllerTest.class
+com\kosmoskan\storing\WorkServiceTest.class

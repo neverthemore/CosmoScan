@@ -61,13 +61,13 @@ public class WorkController {
     @GetMapping(&quot;/files/{id}/content&quot;)
     @Operation(summary = &quot;Скачать файл работы&quot;)
     public ResponseEntity&lt;Resource&gt; downloadFile(@PathVariable Long id) {
-<span class="nc" id="L64">        WorkDto meta = service.findById(id);</span>
-<span class="nc" id="L65">        Resource resource = service.getFileContent(id);</span>
-<span class="nc" id="L66">        return ResponseEntity.ok()</span>
-<span class="nc" id="L67">                .header(HttpHeaders.CONTENT_DISPOSITION,</span>
-<span class="nc" id="L68">                        &quot;attachment; filename=\&quot;&quot; + meta.getOriginalFilename() + &quot;\&quot;&quot;)</span>
-<span class="nc" id="L69">                .contentType(MediaType.APPLICATION_OCTET_STREAM)</span>
-<span class="nc" id="L70">                .body(resource);</span>
+<span class="fc" id="L64">        WorkDto meta = service.findById(id);</span>
+<span class="fc" id="L65">        Resource resource = service.getFileContent(id);</span>
+<span class="fc" id="L66">        return ResponseEntity.ok()</span>
+<span class="fc" id="L67">                .header(HttpHeaders.CONTENT_DISPOSITION,</span>
+<span class="fc" id="L68">                        &quot;attachment; filename=\&quot;&quot; + meta.getOriginalFilename() + &quot;\&quot;&quot;)</span>
+<span class="fc" id="L69">                .contentType(MediaType.APPLICATION_OCTET_STREAM)</span>
+<span class="fc" id="L70">                .body(resource);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

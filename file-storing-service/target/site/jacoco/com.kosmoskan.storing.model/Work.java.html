@@ -7,7 +7,7 @@ import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = &quot;works&quot;)
-<span class="nc" id="L10">public class Work {</span>
+<span class="fc" id="L10">public class Work {</span>
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,22 +35,22 @@ import java.time.OffsetDateTime;
     @Column(name = &quot;uploaded_at&quot;, updatable = false)
     private OffsetDateTime uploadedAt;
 
-<span class="nc" id="L38">    public Long getId() { return id; }</span>
-<span class="nc" id="L39">    public String getStudentName() { return studentName; }</span>
-<span class="nc" id="L40">    public String getOriginalFilename() { return originalFilename; }</span>
-<span class="nc" id="L41">    public String getStoredFilename() { return storedFilename; }</span>
-<span class="nc" id="L42">    public String getFilePath() { return filePath; }</span>
-<span class="nc" id="L43">    public Long getFileSize() { return fileSize; }</span>
-<span class="nc" id="L44">    public String getFileFormat() { return fileFormat; }</span>
-<span class="nc" id="L45">    public OffsetDateTime getUploadedAt() { return uploadedAt; }</span>
+<span class="fc" id="L38">    public Long getId() { return id; }</span>
+<span class="fc" id="L39">    public String getStudentName() { return studentName; }</span>
+<span class="fc" id="L40">    public String getOriginalFilename() { return originalFilename; }</span>
+<span class="fc" id="L41">    public String getStoredFilename() { return storedFilename; }</span>
+<span class="fc" id="L42">    public String getFilePath() { return filePath; }</span>
+<span class="fc" id="L43">    public Long getFileSize() { return fileSize; }</span>
+<span class="fc" id="L44">    public String getFileFormat() { return fileFormat; }</span>
+<span class="fc" id="L45">    public OffsetDateTime getUploadedAt() { return uploadedAt; }</span>
 
-<span class="nc" id="L47">    public void setId(Long id) { this.id = id; }</span>
-<span class="nc" id="L48">    public void setStudentName(String studentName) { this.studentName = studentName; }</span>
-<span class="nc" id="L49">    public void setOriginalFilename(String originalFilename) { this.originalFilename = originalFilename; }</span>
-<span class="nc" id="L50">    public void setStoredFilename(String storedFilename) { this.storedFilename = storedFilename; }</span>
-<span class="nc" id="L51">    public void setFilePath(String filePath) { this.filePath = filePath; }</span>
-<span class="nc" id="L52">    public void setFileSize(Long fileSize) { this.fileSize = fileSize; }</span>
-<span class="nc" id="L53">    public void setFileFormat(String fileFormat) { this.fileFormat = fileFormat; }</span>
-<span class="nc" id="L54">    public void setUploadedAt(OffsetDateTime uploadedAt) { this.uploadedAt = uploadedAt; }</span>
+<span class="fc" id="L47">    public void setId(Long id) { this.id = id; }</span>
+<span class="fc" id="L48">    public void setStudentName(String studentName) { this.studentName = studentName; }</span>
+<span class="fc" id="L49">    public void setOriginalFilename(String originalFilename) { this.originalFilename = originalFilename; }</span>
+<span class="fc" id="L50">    public void setStoredFilename(String storedFilename) { this.storedFilename = storedFilename; }</span>
+<span class="fc" id="L51">    public void setFilePath(String filePath) { this.filePath = filePath; }</span>
+<span class="fc" id="L52">    public void setFileSize(Long fileSize) { this.fileSize = fileSize; }</span>
+<span class="fc" id="L53">    public void setFileFormat(String fileFormat) { this.fileFormat = fileFormat; }</span>
+<span class="fc" id="L54">    public void setUploadedAt(OffsetDateTime uploadedAt) { this.uploadedAt = uploadedAt; }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>
