@@ -222,11 +222,12 @@ mvn test
 # Отчёт: target/site/jacoco/index.html
 ```
 
-<img width="1101" height="229" alt="image" src="https://github.com/user-attachments/assets/124a005c-1341-47fb-b947-11346239fa57" />
+<img width="1094" height="189" alt="image" src="https://github.com/user-attachments/assets/143f3d01-c388-487a-8e5e-b9b2662004ca" />
+
 
 
 ---
 
 ## Скринкаст
 
-[Ссылка на YouTube]
+https://drive.google.com/file/d/1rQ758qBZnxPiW1ETWdaLV2kiYFEkjvEB/view?usp=sharing
