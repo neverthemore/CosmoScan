@@ -230,4 +230,4 @@ mvn test
 
 ## Скринкаст
 
-[Ссылка на YouTube]
+https://drive.google.com/file/d/1rQ758qBZnxPiW1ETWdaLV2kiYFEkjvEB/view?usp=sharing
